@@ -16,7 +16,7 @@ from slideshow import Slideshow
 from events import Rpi_GPIO as GPIO
 
 #####################
-### Configuration ###
+# Configuration     #
 #####################
 
 # Screen size
@@ -32,13 +32,13 @@ thumb_size = (1176, 784)
 picture_basename = datetime.now().strftime("%Y-%m-%d/pic")
 
 # GPIO channel of switch to shutdown the Photobooth
-gpio_shutdown_channel = 24 # pin 18 in all Raspi-Versions
+gpio_shutdown_channel = 24  # pin 18 in all Raspi-Versions
 
 # GPIO channel of switch to take pictures
-gpio_trigger_channel = 23 # pin 16 in all Raspi-Versions
+gpio_trigger_channel = 23  # pin 16 in all Raspi-Versions
 
 # GPIO output channel for (blinking) lamp
-gpio_lamp_channel = 4 # pin 7 in all Raspi-Versions
+gpio_lamp_channel = 4  # pin 7 in all Raspi-Versions
 
 # Waiting time in seconds for posing
 pose_time = 3
@@ -53,8 +53,9 @@ idle_slideshow = True
 slideshow_display_time = 5
 
 ###############
-### Classes ###
+#   Classes   #
 ###############
+
 
 class PictureList:
     """A simple helper class.
@@ -88,7 +89,7 @@ class PictureList:
         else:
             pictures.sort()
             last_picture = pictures[-1]
-            self.counter = int(last_picture[-(self.count_width+len(self.suffix)):-len(self.suffix)])
+            self.counter = int(last_picture[- (self.count_width + len(self.suffix)): - len(self.suffix)])
 
         # Print initial infos
         print("Info: Number of last existing file: " + str(self.counter))
@@ -113,27 +114,27 @@ class Photobooth:
 
     def __init__(self, display_size, picture_basename, picture_size, pose_time, display_time,
                  trigger_channel, shutdown_channel, lamp_channel, idle_slideshow, slideshow_display_time):
-        self.display      = GuiModule('Photobooth', display_size)
-        self.pictures     = PictureList(picture_basename)
-        self.camera       = CameraModule(picture_size)
+        self.display = GuiModule('Photobooth', display_size)
+        self.pictures = PictureList(picture_basename)
+        self.camera = CameraModule(picture_size)
 
-        self.pic_size     = picture_size
-        self.pose_time    = pose_time
+        self.pic_size = picture_size
+        self.pose_time = pose_time
         self.display_time = display_time
 
-        self.trigger_channel  = trigger_channel
+        self.trigger_channel = trigger_channel
         self.shutdown_channel = shutdown_channel
-        self.lamp_channel     = lamp_channel
+        self.lamp_channel = lamp_channel
 
         self.idle_slideshow = idle_slideshow
         if self.idle_slideshow:
             self.slideshow_display_time = slideshow_display_time
-            self.slideshow = Slideshow(display_size, display_time, 
+            self.slideshow = Slideshow(display_size, display_time,
                                        os.path.dirname(os.path.realpath(picture_basename)))
 
-        input_channels    = [ trigger_channel, shutdown_channel ]
-        output_channels   = [ lamp_channel ]
-        self.gpio         = GPIO(self.handle_gpio, input_channels, output_channels)
+        input_channels = [trigger_channel, shutdown_channel]
+        output_channels = [lamp_channel]
+        self.gpio = GPIO(self.handle_gpio, input_channels, output_channels)
 
     def teardown(self):
         self.display.clear()
@@ -195,7 +196,7 @@ class Photobooth:
             r, e = self.display.check_for_event()
 
     def handle_gpio(self, channel):
-        if channel in [ self.trigger_channel, self.shutdown_channel ]:
+        if channel in [self.trigger_channel, self.shutdown_channel]:
             self.display.trigger_event(channel)
 
     def handle_event(self, event):
@@ -238,7 +239,6 @@ class Photobooth:
         self.display.apply()
         sleep(3)
 
-
     def assemble_pictures(self, input_filenames):
         """Assembles four pictures into a 2x2 grid
 
@@ -275,10 +275,10 @@ class Photobooth:
         # Thumbnail size of pictures
         outer_border = 50
         inner_border = 20
-        thumb_box = ( int( self.pic_size[0] / 2 ) ,
-                      int( self.pic_size[1] / 2 ) )
-        thumb_size = ( thumb_box[0] - outer_border - inner_border ,
-                       thumb_box[1] - outer_border - inner_border )
+        thumb_box = (int(self.pic_size[0] / 2),
+                     int(self.pic_size[1] / 2))
+        thumb_size = (thumb_box[0] - outer_border - inner_border,
+                      thumb_box[1] - outer_border - inner_border)
 
         # Create output image with white background
         output_image = Image.new('RGB', self.pic_size, (255, 255, 255))
@@ -286,29 +286,29 @@ class Photobooth:
         # Image 0
         img = Image.open(input_filenames[0])
         img.thumbnail(thumb_size)
-        offset = ( thumb_box[0] - inner_border - img.size[0] ,
-                   thumb_box[1] - inner_border - img.size[1] )
+        offset = (thumb_box[0] - inner_border - img.size[0],
+                  thumb_box[1] - inner_border - img.size[1])
         output_image.paste(img, offset)
 
         # Image 1
         img = Image.open(input_filenames[1])
         img.thumbnail(thumb_size)
-        offset = ( thumb_box[0] + inner_border,
-                   thumb_box[1] - inner_border - img.size[1] )
+        offset = (thumb_box[0] + inner_border,
+                  thumb_box[1] - inner_border - img.size[1])
         output_image.paste(img, offset)
 
         # Image 2
         img = Image.open(input_filenames[2])
         img.thumbnail(thumb_size)
-        offset = ( thumb_box[0] - inner_border - img.size[0] ,
-                   thumb_box[1] + inner_border )
+        offset = (thumb_box[0] - inner_border - img.size[0],
+                  thumb_box[1] + inner_border)
         output_image.paste(img, offset)
 
         # Image 3
         img = Image.open(input_filenames[3])
         img.thumbnail(thumb_size)
-        offset = ( thumb_box[0] + inner_border ,
-                   thumb_box[1] + inner_border )
+        offset = (thumb_box[0] + inner_border,
+                  thumb_box[1] + inner_border)
         output_image.paste(img, offset)
 
         # Save assembled image
@@ -323,7 +323,7 @@ class Photobooth:
             while toc < seconds:
                 self.display.clear()
                 self.camera.take_preview("/tmp/photobooth_preview.jpg")
-                self.display.show_picture("/tmp/photobooth_preview.jpg", flip=True) 
+                self.display.show_picture("/tmp/photobooth_preview.jpg", flip=True)
                 self.display.show_message(str(seconds - int(toc)))
                 self.display.apply()
 
@@ -343,13 +343,13 @@ class Photobooth:
 
         # Show pose message
         self.display.clear()
-        self.display.show_message("POSE!\n\nTaking four pictures...");
+        self.display.show_message("POSE!\n\nTaking four pictures...")
         self.display.apply()
         sleep(2)
 
         # Extract display and image sizes
         size = self.display.get_size()
-        outsize = (int(size[0]/2), int(size[1]/2))
+        # outsize = (int(size[0] / 2), int(size[1] / 2))
 
         # Take pictures
         filenames = [i for i in range(4)]
@@ -363,7 +363,7 @@ class Photobooth:
                 remaining_attempts = remaining_attempts - 1
 
                 self.display.clear()
-                self.display.show_message("S M I L E !!!\n\n" + str(x+1) + " of 4")
+                self.display.show_message("S M I L E !!!\n\n" + str(x + 1) + " of 4")
                 self.display.apply()
 
                 tic = clock()
@@ -376,15 +376,15 @@ class Photobooth:
                     if e.recoverable:
                         if remaining_attempts > 0:
                             self.display.clear()
-                            self.display.show_message(e.message)  
+                            self.display.show_message(e.message)
                             self.display.apply()
                             sleep(5)
                         else:
                             raise CameraException("Giving up! Please start over!", False)
                     else:
-                       raise e
+                        raise e
 
-                # Measure used time and sleep a second if too fast 
+                # Measure used time and sleep a second if too fast
                 toc = clock() - tic
                 if toc < 1.0:
                     sleep(1.0 - toc)
@@ -399,7 +399,7 @@ class Photobooth:
 
         # Show pictures for 10 seconds
         self.display.clear()
-        self.display.show_picture(outfile, size, (0,0))
+        self.display.show_picture(outfile, size, (0, 0))
         self.display.apply()
         sleep(self.display_time)
 
@@ -407,19 +407,19 @@ class Photobooth:
         self.gpio.set_output(self.lamp_channel, 1)
 
 
-
-
 #################
-### Functions ###
+#   Functions   #
 #################
+
 
 def main():
-    photobooth = Photobooth(display_size, picture_basename, image_size, pose_time, display_time, 
-                            gpio_trigger_channel, gpio_shutdown_channel, gpio_lamp_channel, 
+    photobooth = Photobooth(display_size, picture_basename, image_size, pose_time, display_time,
+                            gpio_trigger_channel, gpio_shutdown_channel, gpio_lamp_channel,
                             idle_slideshow, slideshow_display_time)
     photobooth.run()
     photobooth.teardown()
     return 0
+
 
 if __name__ == "__main__":
     exit(main())
