@@ -246,11 +246,10 @@ class Photobooth:
 
         # Thumbnail size of pictures
         outer_border = 50  # a
-        inner_border = 20  # b
-        thumb_box = (int(self.pic_size[0] / 2),
-                     int(self.pic_size[1] / 2))
-        thumb_size = (thumb_box[0] - outer_border - inner_border,
-                      thumb_box[1] - outer_border - inner_border)
+        thumb_box = (int(self.pic_size[0]),
+                     int(self.pic_size[1]))
+        thumb_size = (thumb_box[0] - 2*outer_border,
+                      thumb_box[1] - 2*outer_border)
 
         # Create output image with white background
         output_image = Image.new('RGB', self.pic_size, (255, 255, 255))
@@ -258,8 +257,8 @@ class Photobooth:
         # Image 0
         img = Image.open(input_filenames[0])
         img.thumbnail(thumb_size)
-        offset = (thumb_box[0] - inner_border - img.size[0],
-                  thumb_box[1] - inner_border - img.size[1])
+        offset = (thumb_box[0] - img.size[0],
+                  thumb_box[1] - img.size[1])
         output_image.paste(img, offset)
 
         # Save assembled image
