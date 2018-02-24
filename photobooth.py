@@ -41,7 +41,7 @@ gpio_trigger_channel = 23  # pin 16 in all Raspi-Versions
 gpio_lamp_channel = 4  # pin 7 in all Raspi-Versions
 
 # Waiting time in seconds for posing
-pose_time = 3
+pose_time = 2
 
 # Display time for assembled picture
 display_time = 10
