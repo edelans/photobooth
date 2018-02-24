@@ -244,7 +244,7 @@ class Photobooth:
 
     def assemble_mono_pic(self, input_filenames):
 
-        border_percent = 0.05  ## 0 = no margin, 1 = whole pic border size
+        border_percent = 0.04  # 0 = no margin, 1 = whole pic border size
 
         thumb_box = (int(self.picture_size[0]),
                      int(self.picture_size[1]))
