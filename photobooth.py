@@ -248,8 +248,8 @@ class Photobooth:
         outer_border = 50  # a
         thumb_box = (int(self.pic_size[0]),
                      int(self.pic_size[1]))
-        thumb_size = (thumb_box[0] - 2*outer_border,
-                      thumb_box[1] - 2*outer_border)
+        thumb_size = (thumb_box[0] - outer_border,
+                      thumb_box[1] - outer_border)
 
         # Create output image with white background
         output_image = Image.new('RGB', self.pic_size, (255, 255, 255))
