@@ -23,7 +23,7 @@ from events import Rpi_GPIO as GPIO
 display_size = (1024, 600)
 
 # Maximum size of assembled image
-image_size = (2352, 1568)
+picture_size = (2352, 1568)
 
 # Size of pictures in the assembled image
 thumb_size = (1176, 784)
@@ -121,7 +121,7 @@ class Photobooth:
         self.pictures = PictureList(picture_basename)
         self.camera = CameraModule(picture_size)
 
-        self.pic_size = picture_size
+        self.picture_size = picture_size
         self.pose_time = pose_time
         self.display_time = display_time
 
@@ -246,19 +246,19 @@ class Photobooth:
 
         # Thumbnail size of pictures
         outer_border = 50  # a
-        thumb_box = (int(self.pic_size[0]),
-                     int(self.pic_size[1]))
-        thumb_size = (thumb_box[0] - outer_border,
-                      thumb_box[1] - outer_border)
+        thumb_box = (int(self.picture_size[0]),
+                     int(self.picture_size[1]))
+        thumb_size = (thumb_box[0] - 2 * outer_border,
+                      thumb_box[1] - 2 * outer_border)
 
         # Create output image with white background
-        output_image = Image.new('RGB', self.pic_size, (255, 255, 255))
+        output_image = Image.new('RGB', self.picture_size, (255, 255, 255))
 
         # Image 0
         img = Image.open(input_filenames[0])
         img.thumbnail(thumb_size)
-        offset = (thumb_box[0] - img.size[0],
-                  thumb_box[1] - img.size[1])
+        offset = (outer_border,
+                  outer_border)
         output_image.paste(img, offset)
 
         # Save assembled image
@@ -278,21 +278,21 @@ class Photobooth:
 
                                     W
                |---------------------------------------|
-
+               thumb_box           |
           ---  +---+-------------+---+-------------+---+  ---
-           |   |                                       |   |  a
-           |   |   +-------------+   +-------------+   |  ---
-           |   |   |             |   |             |   |   |
-           |   |   |      0      |   |      1      |   |   |  h
-           |   |   |             |   |             |   |   |
-           |   |   +-------------+   +-------------+   |  ---
+           |   |   thumb_size                          |   |  a
+           |   |   +-------------+ i  +-------------+  |  ---
+           |   |   |             | n  |             |  |   |
+           |   |   |      0      | n  |      1      |  |   |  h
+           |   |   |             | e  |             |  |   |
+           |   |   +-------------+ r  +-------------+  |  ---
          H |   |                                       |   |  2*b
-           |   |   +-------------+   +-------------+   |  ---
-           |   |   |             |   |             |   |   |
-           |   |   |      2      |   |      3      |   |   |  h
-           |   |   |             |   |             |   |   |
-           |   |   +-------------+   +-------------+   |  ---
-           |   |                                       |   |  a
+           |   |   +-------------+ b  +-------------+  |  ---
+           |   |   |             | o  |             |  |   |
+           |   |   |      2      | r  |      3      |  |   |  h
+           |   |   |             | d  |             |  |   |
+           |   |   +-------------+ r  +-------------+  |  ---
+           |   |   outer_border                        |   |  a
           ---  +---+-------------+---+-------------+---+  ---
 
                |---|-------------|---|-------------|---|
@@ -302,13 +302,13 @@ class Photobooth:
         # Thumbnail size of pictures
         outer_border = 50
         inner_border = 20
-        thumb_box = (int(self.pic_size[0] / 2),
-                     int(self.pic_size[1] / 2))
+        thumb_box = (int(self.picture_size[0] / 2),
+                     int(self.picture_size[1] / 2))
         thumb_size = (thumb_box[0] - outer_border - inner_border,
                       thumb_box[1] - outer_border - inner_border)
 
         # Create output image with white background
-        output_image = Image.new('RGB', self.pic_size, (255, 255, 255))
+        output_image = Image.new('RGB', self.picture_size, (255, 255, 255))
 
         # Image 0
         img = Image.open(input_filenames[0])
@@ -504,7 +504,7 @@ class Photobooth:
 
 
 def main():
-    photobooth = Photobooth(display_size, picture_basename, image_size, pose_time, display_time,
+    photobooth = Photobooth(display_size, picture_basename, picture_size, pose_time, display_time,
                             gpio_trigger_channel, gpio_shutdown_channel, gpio_lamp_channel,
                             idle_slideshow, slideshow_display_time)
     photobooth.run()
