@@ -244,12 +244,12 @@ class Photobooth:
 
     def assemble_mono_pic(self, input_filenames):
 
-        # Thumbnail size of pictures
-        outer_border = 50  # a
+        border_percent = 0.05  ## 0 = no margin, 1 = whole pic border size
+
         thumb_box = (int(self.picture_size[0]),
                      int(self.picture_size[1]))
-        thumb_size = (thumb_box[0] - 2 * outer_border,
-                      thumb_box[1] - 2 * outer_border)
+        thumb_size = (int(1 - 2 * border_percent * thumb_box[0]),
+                      int(1 - 2 * border_percent * thumb_box[1]))
 
         # Create output image with white background
         output_image = Image.new('RGB', self.picture_size, (255, 255, 255))
@@ -257,8 +257,9 @@ class Photobooth:
         # Image 0
         img = Image.open(input_filenames[0])
         img.thumbnail(thumb_size)
-        offset = (outer_border,
-                  outer_border)
+        offset = (int(border_percent * thumb_box[0]),
+                  int(border_percent * thumb_box[1]))
+
         output_image.paste(img, offset)
 
         # Save assembled image
