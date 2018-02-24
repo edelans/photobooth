@@ -52,6 +52,9 @@ idle_slideshow = True
 # Display time of pictures in the slideshow
 slideshow_display_time = 5
 
+# How many pics ? (1, 4) 4 -> outputs a 2x2 pics collage
+pics_number = 1
+
 ###############
 #   Classes   #
 ###############
@@ -239,6 +242,31 @@ class Photobooth:
         self.display.apply()
         sleep(3)
 
+    def assemble_mono_pic(self, input_filenames):
+
+        # Thumbnail size of pictures
+        outer_border = 50  # a
+        inner_border = 20  # b
+        thumb_box = (int(self.pic_size[0] / 2),
+                     int(self.pic_size[1] / 2))
+        thumb_size = (thumb_box[0] - outer_border - inner_border,
+                      thumb_box[1] - outer_border - inner_border)
+
+        # Create output image with white background
+        output_image = Image.new('RGB', self.pic_size, (255, 255, 255))
+
+        # Image 0
+        img = Image.open(input_filenames[0])
+        img.thumbnail(thumb_size)
+        offset = (thumb_box[0] - inner_border - img.size[0],
+                  thumb_box[1] - inner_border - img.size[1])
+        output_image.paste(img, offset)
+
+        # Save assembled image
+        output_filename = self.pictures.get_next()
+        output_image.save(output_filename, "JPEG")
+        return output_filename
+
     def assemble_pictures(self, input_filenames):
         """Assembles four pictures into a 2x2 grid
 
@@ -341,67 +369,131 @@ class Photobooth:
         # Disable lamp
         self.gpio.set_output(self.lamp_channel, 0)
 
-        # Show pose message
-        self.display.clear()
-        self.display.show_message("POSE!\n\nTaking four pictures...")
-        self.display.apply()
-        sleep(2)
+        if pics_number == 1:
+            # Show pose message
+            self.display.clear()
+            self.display.show_message("POSE!\n\nTaking only 1 picture...")
+            self.display.apply()
+            sleep(2)
 
-        # Extract display and image sizes
-        size = self.display.get_size()
-        # outsize = (int(size[0] / 2), int(size[1] / 2))
+            # Extract display and image sizes
+            size = self.display.get_size()
+            # outsize = (int(size[0] / 2), int(size[1] / 2))
 
-        # Take pictures
-        filenames = [i for i in range(4)]
-        for x in range(4):
-            # Countdown
-            self.show_counter(self.pose_time)
+            # Take pictures
+            filenames = [1]
+            for x in range(1):
+                # Countdown
+                self.show_counter(self.pose_time)
 
-            # Try each picture up to 3 times
-            remaining_attempts = 3
-            while remaining_attempts > 0:
-                remaining_attempts = remaining_attempts - 1
+                # Try each picture up to 3 times
+                remaining_attempts = 3
+                while remaining_attempts > 0:
+                    remaining_attempts = remaining_attempts - 1
 
-                self.display.clear()
-                self.display.show_message("S M I L E !!!\n\n" + str(x + 1) + " of 4")
-                self.display.apply()
+                    self.display.clear()
+                    self.display.show_message("S M I L E !!!")
+                    self.display.apply()
 
-                tic = clock()
+                    tic = clock()
 
-                try:
-                    filenames[x] = self.camera.take_picture("/tmp/photobooth_%02d.jpg" % x)
-                    remaining_attempts = 0
-                except CameraException as e:
-                    # On recoverable errors: display message and retry
-                    if e.recoverable:
-                        if remaining_attempts > 0:
-                            self.display.clear()
-                            self.display.show_message(e.message)
-                            self.display.apply()
-                            sleep(5)
+                    try:
+                        filenames[x] = self.camera.take_picture("/tmp/photobooth_%02d.jpg" % x)
+                        remaining_attempts = 0
+                    except CameraException as e:
+                        # On recoverable errors: display message and retry
+                        if e.recoverable:
+                            if remaining_attempts > 0:
+                                self.display.clear()
+                                self.display.show_message(e.message)
+                                self.display.apply()
+                                sleep(5)
+                            else:
+                                raise CameraException("Giving up! Please start over!", False)
                         else:
-                            raise CameraException("Giving up! Please start over!", False)
-                    else:
-                        raise e
+                            raise e
 
-                # Measure used time and sleep a second if too fast
-                toc = clock() - tic
-                if toc < 1.0:
-                    sleep(1.0 - toc)
+                    # Measure used time and sleep a second if too fast
+                    toc = clock() - tic
+                    if toc < 1.0:
+                        sleep(1.0 - toc)
 
-        # Show 'Wait'
-        self.display.clear()
-        self.display.show_message("Please wait!\n\nProcessing...")
-        self.display.apply()
+            # Show 'Wait'
+            self.display.clear()
+            self.display.show_message("Please wait!\n\nProcessing...")
+            self.display.apply()
 
-        # Assemble them
-        outfile = self.assemble_pictures(filenames)
+            # Assemble them
+            outfile = self.assemble_mono_pic(filenames)
 
-        # Show pictures for 10 seconds
-        self.display.clear()
-        self.display.show_picture(outfile, size, (0, 0))
-        self.display.apply()
-        sleep(self.display_time)
+            # Show pictures for 10 seconds
+            self.display.clear()
+            self.display.show_picture(outfile, size, (0, 0))
+            self.display.apply()
+            sleep(self.display_time)
+
+        if pics_number == 4:
+            # Show pose message
+            self.display.clear()
+            self.display.show_message("POSE!\n\nTaking four pictures...")
+            self.display.apply()
+            sleep(2)
+
+            # Extract display and image sizes
+            size = self.display.get_size()
+            # outsize = (int(size[0] / 2), int(size[1] / 2))
+
+            # Take pictures
+            filenames = [i for i in range(4)]
+            for x in range(4):
+                # Countdown
+                self.show_counter(self.pose_time)
+
+                # Try each picture up to 3 times
+                remaining_attempts = 3
+                while remaining_attempts > 0:
+                    remaining_attempts = remaining_attempts - 1
+
+                    self.display.clear()
+                    self.display.show_message("S M I L E !!!\n\n" + str(x + 1) + " of 4")
+                    self.display.apply()
+
+                    tic = clock()
+
+                    try:
+                        filenames[x] = self.camera.take_picture("/tmp/photobooth_%02d.jpg" % x)
+                        remaining_attempts = 0
+                    except CameraException as e:
+                        # On recoverable errors: display message and retry
+                        if e.recoverable:
+                            if remaining_attempts > 0:
+                                self.display.clear()
+                                self.display.show_message(e.message)
+                                self.display.apply()
+                                sleep(5)
+                            else:
+                                raise CameraException("Giving up! Please start over!", False)
+                        else:
+                            raise e
+
+                    # Measure used time and sleep a second if too fast
+                    toc = clock() - tic
+                    if toc < 1.0:
+                        sleep(1.0 - toc)
+
+            # Show 'Wait'
+            self.display.clear()
+            self.display.show_message("Please wait!\n\nProcessing...")
+            self.display.apply()
+
+            # Assemble them
+            outfile = self.assemble_pictures(filenames)
+
+            # Show pictures for 10 seconds
+            self.display.clear()
+            self.display.show_picture(outfile, size, (0, 0))
+            self.display.apply()
+            sleep(self.display_time)
 
         # Reenable lamp
         self.gpio.set_output(self.lamp_channel, 1)
