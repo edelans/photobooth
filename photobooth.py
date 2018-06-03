@@ -2,6 +2,10 @@
 # Created by br _at_ re-web _dot_ eu, 2015-2016
 
 import os
+import snowboydecoder
+import time
+import signal
+from light import Light
 from datetime import datetime
 from glob import glob
 from sys import exit
@@ -54,6 +58,16 @@ slideshow_display_time = 5
 
 # How many pics ? (1, 4) 4 -> outputs a 2x2 pics collage
 pics_number = 1
+
+# hotword model
+model = "snowboy/ouistiti.pmdl"
+
+# hotword detection variable
+interrupted = False
+
+# GPIO channel for (blinking) lamp when hotword is detected
+gpio_hotword_channel = 17
+
 
 ###############
 #   Classes   #
@@ -499,9 +513,58 @@ class Photobooth:
         self.gpio.set_output(self.lamp_channel, 1)
 
 
+class Light(object):
+    def __init__(self, port):
+        self.port = port
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(self.port, GPIO.OUT)
+        self.on_state = GPIO.HIGH
+        self.off_state = not self.on_state
+
+    def set_on(self):
+        GPIO.output(self.port, self.on_state)
+
+    def set_off(self):
+        GPIO.output(self.port, self.off_state)
+
+    def is_on(self):
+        return GPIO.input(self.port) == self.on_state
+
+    def is_off(self):
+        return GPIO.input(self.port) == self.off_state
+
+    def toggle(self):
+        if self.is_on():
+            self.set_off()
+        else:
+            self.set_on()
+
+    def blink(self, t=0.3):
+        self.set_off()
+        self.set_on()
+        time.sleep(t)
+        self.set_off()
+
+
 #################
 #   Functions   #
 #################
+
+
+
+
+
+def signal_handler(signal, frame):
+    global interrupted
+    interrupted = True
+
+def interrupt_callback():
+    global interrupted
+    return interrupted
+
+
+
+
 
 
 def main():
@@ -509,6 +572,18 @@ def main():
                             gpio_trigger_channel, gpio_shutdown_channel, gpio_lamp_channel,
                             idle_slideshow, slideshow_display_time)
     photobooth.run()
+
+    # capture SIGINT signal, e.g., Ctrl+C
+    signal.signal(signal.SIGINT, signal_handler)
+
+    detector = snowboydecoder.HotwordDetector(model, sensitivity=0.5)
+
+    led = Light(gpio_hotword_channel)
+    detector.start(detected_callback=led.blink,
+                   interrupt_check=interrupt_callback,
+                   sleep_time=0.03)
+
+    detector.terminate()
     photobooth.teardown()
     return 0
 
